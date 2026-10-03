@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="以移动加权平均成本记录买卖和费用，用手动标价核对市值、已实现与未实现盈亏。"
+    />
+    <title>Holdings Ledger · AI 小工具</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/data.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand"><span class="logo">H</span>Holdings Ledger</div>
+        <div class="side-intro">
+          <div class="eyebrow">DATA & FINANCE STUDIO</div>
+          <div class="nav-item">手动持仓账本</div>
+        </div>
+        <div class="side-note">
+          把一个想法，变成可以使用的结果。<br />轻量、专注，按你的节奏。
+        </div>
+        <div class="side-bottom">
+          <div class="eyebrow">CONNECTION</div>
+          <label
+            ><span class="sr-only" hidden>运行模式</span
+            ><select id="mode" aria-label="运行模式"></select
+          ></label>
+        </div>
+        <div class="side-footer">
+          DATA EDITION / 08<br />Built for a little more clarity.
+        </div>
+      </aside>
+      <main class="main">
+        <header class="topbar">
+          <span class="crumb">我的工作台 &nbsp; / &nbsp; 手动持仓账本</span
+          ><span class="top-meta"
+            ><i class="dot"></i><span id="connection">正在连接…</span></span
+          >
+        </header>
+        <section class="hero">
+          <div class="eyebrow">EVERY POSITION HAS A HISTORY.</div>
+          <h1>从每笔交易，看清当前持仓。</h1>
+          <p class="description">
+            以移动加权平均成本记录买卖和费用，用手动标价核对市值、已实现与未实现盈亏。
+          </p>
+        </section>
+        <section class="data-layout">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>账本与估值</h2>
+              <button id="sample" class="small">示例账本</button>
+            </div>
+            <p class="source-note">虚构资产 · 手动记录 · 不连接券商</p>
+            <form id="ledger-form">
+              <div
+                class="wide-controls"
+                style="grid-template-columns: 1fr 1fr; margin-top: 0"
+              >
+                <label
+                  >统一币种<select id="currency">
+                    <option>CNY</option>
+                    <option>USD</option>
+                    <option>EUR</option>
+                  </select></label
+                ><label
+                  >估值日期<input id="as-of" type="date" required
+                /></label>
+              </div>
+              <label
+                >交易流水 CSV<textarea
+                  id="transactions"
+                  rows="9"
+                  maxlength="225000"
+                  required
+                  spellcheck="false"
+                  placeholder="date,symbol,side,quantity,price,fee"
+                ></textarea></label
+              ><input
+                id="transactions-file"
+                class="upload-input"
+                type="file"
+                accept=".csv"
+                aria-label="导入交易CSV"
+              /><label style="margin-top: 16px"
+                >手动标价 CSV<textarea
+                  id="marks"
+                  rows="5"
+                  maxlength="25000"
+                  spellcheck="false"
+                  placeholder="symbol,price"
+                ></textarea></label
+              ><input
+                id="marks-file"
+                class="upload-input"
+                type="file"
+                accept=".csv"
+                aria-label="导入标价CSV"
+              /><button id="analyze" class="primary" style="margin-top: 18px">
+                刷新持仓与盈亏 ↗
+              </button>
+            </form>
+            <details>
+              <summary>快速追加一笔交易</summary>
+              <form id="trade-form">
+                <div
+                  class="wide-controls"
+                  style="grid-template-columns: 1fr 1fr"
+                >
+                  <label
+                    >日期<input id="trade-date" type="date" required /></label
+                  ><label
+                    >资产标识<input
+                      id="symbol"
+                      maxlength="32"
+                      pattern="[A-Za-z0-9][A-Za-z0-9._-]*"
+                      required
+                      placeholder="ALPHA" /></label
+                  ><label
+                    >方向<select id="side">
+                      <option value="buy">买入</option>
+                      <option value="sell">卖出</option>
+                    </select></label
+                  ><label
+                    >整股数量<input
+                      id="quantity"
+                      type="number"
+                      min="1"
+                      max="1000000000"
+                      step="1"
+                      required /></label
+                  ><label
+                    >价格<input
+                      id="price"
+                      type="number"
+                      min="0.000001"
+                      max="1000000000"
+                      step="any"
+                      required /></label
+                  ><label
+                    >费用<input
+                      id="fee"
+                      type="number"
+                      min="0"
+                      max="1000000000"
+                      value="0"
+                      step="any"
+                      required
+                  /></label>
+                </div>
+                <button id="add-trade" class="small">加入流水</button>
+              </form>
+            </details>
+            <div class="divider"></div>
+            <div class="toolbar">
+              <button id="save-local" class="small">保存到浏览器</button
+              ><button id="backup" class="small">导出输入备份</button>
+            </div>
+            <label
+              >恢复输入备份<input
+                id="restore"
+                class="upload-input"
+                type="file"
+                accept=".json"
+            /></label>
+            <p class="hint">
+              保存和备份针对当前输入；分析报告针对最近一次成功计算。当前页面可随时编辑原始流水。
+            </p>
+          </section>
+          <div>
+            <div id="metrics" class="metric-grid"></div>
+            <section class="panel data-panel">
+              <div class="result-title">
+                <h2>手动估值的资产构成</h2>
+                <span id="valuation-label" class="chip"
+                  >WEIGHTED AVERAGE COST</span
+                >
+              </div>
+              <div id="allocation-chart" class="chart-wrap">
+                <div class="empty">
+                  <div class="symbol">▤</div>
+                  <h3>每个成本，都可以追溯</h3>
+                  <p>载入示例，查看部分卖出后的持仓与盈亏。</p>
+                </div>
+              </div>
+              <p id="coverage" class="hint"></p>
+            </section>
+            <section class="panel data-panel">
+              <h2>持仓与成本明细</h2>
+              <div id="holdings" class="table-wrap"></div>
+            </section>
+            <section class="panel data-panel">
+              <h2>逐笔成本核对</h2>
+              <div id="transactions-table" class="table-wrap"></div>
+            </section>
+            <section class="panel data-panel">
+              <h2>账本解读</h2>
+              <p id="warnings" class="warning-list"></p>
+              <div id="meta" class="meta"></div>
+              <div id="insight" class="insight">
+                缺标价不当零；盈亏按同一币种分别核对。
+              </div>
+              <div id="exports" class="toolbar" hidden>
+                <button id="export-html" class="primary">导出 HTML 报告</button
+                ><button id="export-csv" class="small">导出持仓 CSV</button
+                ><button id="export-json" class="small">导出估值 JSON</button>
+              </div>
+            </section>
+          </div>
+        </section>
+        <footer class="footer">
+          <span>Holdings Ledger · 独立轻量实现</span
+          ><span
+            >灵感来自
+            <a
+              href="https://github.com/ghostfolio/ghostfolio"
+              target="_blank"
+              rel="noopener noreferrer"
+              >ghostfolio/ghostfolio</a
+            >
+            &nbsp; / &nbsp; 08 OF 10</span
+          >
+        </footer>
+      </main>
+    </div>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
